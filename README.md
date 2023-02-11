@@ -162,7 +162,10 @@
 <br/>
 
 ## 6. 개발 및 기획
+> 백엔드
 - 송민아 [m1naworld](https://github.com/m1naworld)
+
+> 프론트 엔드
 - 안수빈 [AnSuebin](https://github.com/AnSuebin)
 - 이현정 [cchloe0927](https://github.com/cchloe0927)
 - 조무결 [mugyeol](https://github.com/mugyeol)
