@@ -5,8 +5,6 @@ import com.example.tamna.dto.DetailBookingDataDto;
 import com.example.tamna.model.Booking;
 import com.example.tamna.mapper.BookingMapper;
 import com.example.tamna.mapper.ParticipantsMapper;
-import com.example.tamna.mapper.RoomMapper;
-import com.example.tamna.mapper.UserMapper;
 import com.example.tamna.model.JoinBooking;
 
 import lombok.RequiredArgsConstructor;
@@ -19,12 +17,8 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
-
 public class BookingService {
 
-    //    private final Logger LOGGER = LoggerFactory.getLogger(BookingService.class);
-    private final UserMapper userMapper;
-    private final RoomMapper roomMapper;
     private final BookingMapper bookingMapper;
     private final ParticipantsMapper participantsMapper;
     private final UserService userService;
@@ -51,7 +45,6 @@ public class BookingService {
     // 층수 별 예약 현황
     public List<Booking> floorBookingData(int floor) {
         Date today = time();
-        System.out.println(bookingMapper.findByFloor(today, floor));
         return bookingMapper.findByFloor(today, floor);
     }
 
@@ -64,7 +57,6 @@ public class BookingService {
             System.out.println("현재 예약된 회의실!");
             return true;
         }
-        System.out.println("현재 예약 되어 있지 않은 회의실!");
         return false;
     }
 
@@ -74,13 +66,13 @@ public class BookingService {
         Date today = time();
         List<DetailBookingDataDto> floorDetailBooking = new ArrayList<>();
         List<Booking> floorBooking = bookingMapper.findByFloor(today, floor);
-        System.out.println(today);
+
         for (int k = 0; k < floorBooking.toArray().length; k++) {
             int roomId = floorBooking.get(k).getRoomId();
             String startTime = floorBooking.get(k).getStartTime();
             List<JoinBooking> detailData = bookingMapper.findDetailBookingData(today, roomId, startTime);
-            System.out.println("detailData: " + detailData);
             DetailBookingDataDto combineData = new DetailBookingDataDto();
+
             if (!detailData.isEmpty()) {
                 Map<String, String> applicants = new HashMap<>();
                 List<String> teamMate = new ArrayList<>();
@@ -115,10 +107,8 @@ public class BookingService {
 
         bookingMapper.insertBooking(today, roomId, startTime, endTime, official);
         List<Integer> bookingId = bookingMapper.selectResultInsert(today, roomId, startTime, endTime);
-        System.out.println(bookingId);
         int minBookingId = Collections.min(bookingId);
         if (bookingId.toArray().length != 1) {
-            System.out.println("최소 bookingId: " + minBookingId);
             for (int i : bookingId) {
                 if (minBookingId != i) {
                     bookingMapper.deleteBooking(i);
@@ -143,19 +133,16 @@ public class BookingService {
     // 내가 포함된 에약 데이터 조회
     public List<DetailBookingDataDto> userIncludedBooking(String userId) {
         Date today = time();
-
         List<DetailBookingDataDto> allMyBookingData = new ArrayList<>();
 
         // 내가 예약된 예약정보의 bookingId들 받아옴
         List<Integer> bookingIdList = bookingMapper.findMyBookingId(today, userId);
-        System.out.println("내가 예약된 BookingId" + bookingIdList);
         String bookingIdString = addBookingId(bookingIdList);
 
         // 예약한 데이터가 있을 때
         if (bookingIdString != null) {
             // bookingId들 문자열로 변환 후 한번에 데이터들 모두 조회
             List<JoinBooking> myBookingList = bookingMapper.findMyBookingData(bookingIdString);
-//            System.out.println(bookingMapper.findMyBookingData(addBookingId(bookingIdList)));
 
             if (!myBookingList.isEmpty()) {
                 for (int i : bookingIdList) {
@@ -183,7 +170,6 @@ public class BookingService {
                         continue;
                     }
                     combineData.setParticipants(teamMate);
-//                    System.out.println(combineData);
                     allMyBookingData.add(combineData);
                 }
             } else {
@@ -198,7 +184,7 @@ public class BookingService {
     // bookingId를 통한 공식일정 검색
     public CancelDto selectBookingId(int bookingId, String userId) {
         CancelDto result =  bookingMapper.selectOfficial(bookingId);
-        System.out.println(result);
+
         if(result.getUserId().equals(userId)){
             return result;
         }
@@ -208,7 +194,6 @@ public class BookingService {
     // 공식일정인지 결과 확인
     public List<Boolean> checkOfficial(int roomId, String startTime, String endTime) {
         Date today = time();
-//        System.out.println(": " + bookingMapper.findSameTimeOfficial(today, roomId, startTime, endTime));
         return bookingMapper.findSameTimeOfficial(today, roomId, startTime, endTime);
     }
 
@@ -216,8 +201,6 @@ public class BookingService {
     public String deleteBooking(int bookingId) {
         int checkBookingDelete = bookingMapper.deleteBooking(bookingId);
         int checkParticipantsDelete = participantsMapper.deleteParticipants(bookingId);
-        System.out.println(checkBookingDelete);
-        System.out.println(checkParticipantsDelete);
         if (checkBookingDelete == 1 && checkParticipantsDelete >= 1) {
             return "success";
         }
@@ -237,7 +220,6 @@ public class BookingService {
         Date today = time();
         int hour = nowHour();
         List<CancelDto> canceledBooking = bookingMapper.selectCancelBooking(today, booking.getRoomId(), booking.getStartTime(), booking.getEndTime());
-        System.out.println(canceledBooking);
 
         if (!canceledBooking.isEmpty()) {
             // 삭제하고 남은 취소되었던 예약 데이터
@@ -246,7 +228,6 @@ public class BookingService {
             Set<Integer> deleteBookingId = new HashSet<>();
             for (int i = 0; i < canceledBooking.toArray().length; i++) {
                 int bookingStartTime = Integer.parseInt(canceledBooking.get(i).getStartTime().substring(0,2));
-                System.out.println(bookingStartTime);
                 // 현재시간 보다 + 1시간 보다 종료시간이 작은 예약들 삭제
                 if (bookingStartTime <= hour + 1) {
                     deleteBookingId.add(canceledBooking.get(i).getBookingId());
@@ -256,58 +237,47 @@ public class BookingService {
                         applicantMap.put(canceledBooking.get(i).getUserId(), canceledBooking.get(i).getBookingId());
                     }
                 }
-            } // for 문 끝
+            }
 
-            System.out.println("newCanceledBooking" + newCanceledBooking);
             String bookingsIdString = addBookingId(deleteBookingId);
-            System.out.println("bookingId 모음" + bookingsIdString);
             if(bookingsIdString != null) {
                 int deleteCount1 = bookingMapper.deleteBookings(bookingsIdString);
                 int deleteCount2 = participantsMapper.deleteSeveralParticipants(bookingsIdString);
-                System.out.println("deleteCount1: " + deleteCount1 + " deleteCount2: " + deleteCount2);
             }
-
-            System.out.println("applicantMap" + applicantMap);
 
             if (!newCanceledBooking.isEmpty()) {
                 // 검색을 위한 유저아이디 값 모음
                 Set<String> applicantsSet = new HashSet<>(applicantMap.keySet());
                 String applicantsString = userService.changeString(null, applicantsSet);
-                System.out.println("String 변환 유저들 id: " + applicantsString);
 
                 // cancel되었던 bookingId 리스트 <- 동시간대 예약자를 확인하기 위한 for 문에 쓰임
                 List<Integer> allBookingId = new ArrayList<>(applicantMap.values());
-                System.out.println("bookingId들 모음: " + allBookingId);
 
                 // 취소된 유저들의 다른 회의실 예약 현황 조회후 삭제
                 List<String> otherBookingUserId = bookingMapper.findNotCancelMyBooking(today, applicantsString);
-                System.out.println("다른 회의실 예약한 유저들: " + otherBookingUserId);
 
                 List<CancelDto> restCanceledBooking = new ArrayList<CancelDto>(); // 참여자 동시간대 cancel 예약 취소를 위한 삭제한 예약들을 제외한 새로운 canceldbooking리스트
 
                 if (!otherBookingUserId.isEmpty()) {
                     for (String userId : otherBookingUserId) {
                         int willDeleteBookingId = applicantMap.get(userId);
-                        System.out.println("취소되었던 예약을 삭제해야할 bookingId: " + willDeleteBookingId);
                         for (int i = 0; i < newCanceledBooking.toArray().length; i++) {
                             if (newCanceledBooking.get(i).getBookingId() == willDeleteBookingId) {
                                 allBookingId.remove(Integer.valueOf(willDeleteBookingId));
                                 deleteBooking(willDeleteBookingId);
-                                System.out.println("@@" + allBookingId);
                             } else {
-                                restCanceledBooking.add(canceledBooking.get(i)); // << 요기 잘 볼것
+                                restCanceledBooking.add(canceledBooking.get(i));
                             }
                         }
                     }
                 }
 
                 List<Integer> finalBookingId = allBookingId;
-                System.out.println("finalBookingId" + finalBookingId);
                 // 남은 cancel되었던 예약들 중 같은 시간대 예약자 존재 시 삭제
                 if (restCanceledBooking.isEmpty()) {
                     restCanceledBooking = newCanceledBooking;
                 }
-                System.out.println(restCanceledBooking);
+
                 if (!allBookingId.isEmpty()) {
                     for (int bookingId : allBookingId) {
                         String startTime = null;
@@ -319,9 +289,8 @@ public class BookingService {
                                 userIds.add(restCanceledBooking.get(i).getUserId());
                                 startTime = restCanceledBooking.get(i).getStartTime();
                                 endTime = restCanceledBooking.get(i).getEndTime();
-                                System.out.println(userIds + " " + startTime + " " + endTime);
                             }
-                        } // for 문 끝
+                        }
 
                         if (!userIds.isEmpty()) { // 같은 시간대 예약되었는지 확인 후 있을 경우 기존 취소되었던 예약 목록에서 삭제
                             String usersIdString = userService.changeString(null, userIds);
@@ -333,14 +302,11 @@ public class BookingService {
                         }
                     }
 
-                    System.out.println("최종 bookingIdList" + finalBookingId);
-
                     // 위의 조건에 모두 부합할 경우 취소되었던 예약 활성화
                     String selectForBookingsId = addBookingId(finalBookingId);
-                    System.out.println(selectForBookingsId);
+
                     if (selectForBookingsId != null) {
                         int updateResultCount = bookingMapper.updateBookingMode(selectForBookingsId, null);
-                        System.out.println("updateResultCount :" + updateResultCount);
                     }
 
                 }
@@ -348,8 +314,6 @@ public class BookingService {
         }
         // 공식일정 취소
         return deleteBooking(booking.getBookingId());
-//
-
     }
 
 
@@ -357,17 +321,13 @@ public class BookingService {
     public int updateBooking(int roomId, String userId, String startTime, String endTime, boolean official) {
         Date today = time();
         List<Integer> sameBooking = bookingMapper.findSameBooking(today, roomId, startTime, endTime);
-            System.out.println(sameBooking);
+
         if (!sameBooking.isEmpty()){
             String bookingsIdString = addBookingId(sameBooking);
-            System.out.println(bookingsIdString);
             int updateResultCount = bookingMapper.updateBookingMode(bookingsIdString, "cancel");
-            System.out.println("updateCount" + updateResultCount);
         }
         int resultBookingId = insertBooking(roomId, startTime, endTime, official);
-        System.out.println("resultBookingId : " + resultBookingId);
         return resultBookingId;
     }
-
 
 }

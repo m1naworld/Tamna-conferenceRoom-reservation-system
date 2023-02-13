@@ -40,10 +40,8 @@ public class AuthController {
     @ResponseBody
     public ResponseEntity<Map<String, String>> createToken(@RequestBody UserId userId, HttpServletResponse response){
         String getUserId = userId.userId;
-        System.out.println(getUserId);
         Map<String, String> tokenMap =  authService.login(getUserId);
-        System.out.println("로그인 토큰 맵!!! " + tokenMap);
-        System.out.println(tokenMap.get("message"));
+
         if(tokenMap.get("message") != null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(tokenMap);
         }else{
@@ -62,8 +60,8 @@ public class AuthController {
     public ResponseEntity<Map<String, String>> logout(HttpServletRequest request){
         Map<String, String> map = new HashMap<>();
         String result = authService.logOutCheckUser(request);
-        System.out.println("로그아웃 결과: " + result);
         map.put("message", result);
+
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
 

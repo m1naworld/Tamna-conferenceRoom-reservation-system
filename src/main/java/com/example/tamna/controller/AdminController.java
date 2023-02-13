@@ -20,8 +20,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 
 @RestController
@@ -50,16 +48,18 @@ public class AdminController {
     @ApiOperation(value= "어드민 로그인")
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> loginAdmin(@RequestBody UserId userId, HttpServletResponse response){
+
         Map<String, Object> map = new HashMap<>();
         String getUserId = userId.userId;
-        System.out.println(getUserId);
         String result = adminService.getAdminToken(getUserId);
+
         if(result.equals("fail")){
             map.put("message", result);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(map);
         }
         response.addHeader(ADMINAUTHORIZATION_HEADER, tokenPrefix + result);
         map.put("message", "success");
+
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
 
@@ -76,14 +76,15 @@ public class AdminController {
     @ApiOperation(value="최신기수 업데이트")
     @PostMapping("/insert/user")
     public ResponseEntity<Map<String, Object>> insertUserData(@RequestPart(required = false) MultipartFile file, HttpServletRequest request) throws IOException {
-//        String resourceSrc = request.getServletContext().getRealPath("/data/");
+//        String resourceSrc = request.getServletContext().getRealPath("/data/"); test용
         String resourceSrc = "/home/opc/server/resources/"; // 서버 파일 절대경로
-        System.out.println(resourceSrc);
+
         Map<String, Object> map = new HashMap<>();
+
         try {
             File dest = new File(resourceSrc + file.getOriginalFilename());
             file.transferTo(dest);
-            String result = adminService.updateUser(dest);
+            String result = adminService.updateUsers(dest);
 
             dest.delete();
 
@@ -95,10 +96,8 @@ public class AdminController {
         }catch (NullPointerException e){
             map.put("message", "파일을 선택해주세요.");
         }
-        System.out.println(map);
+
         return ResponseEntity.status(HttpStatus.OK).body(map);
-
-
     }
 
     @ApiOperation(value = "기수별 층수 보기")
@@ -106,10 +105,12 @@ public class AdminController {
     public ResponseEntity<Map<String, Object>> getClassOfFloor(){
         Map<String, Object> map = new HashMap<>();
         List<ClassFloorDto> result =  adminMapper.getClassOfFloor();
+
         if(!result.isEmpty()) {
             map.put("floorData", floor);
             map.put("ClassOfFloorData", result);
         }
+
         return ResponseEntity.status(HttpStatus.OK).body(map);
     }
 
@@ -117,13 +118,14 @@ public class AdminController {
     @PostMapping("/change/floor")
     public ResponseEntity<Map<String, Object>> changeFloor(@RequestBody ClassFloorDto classFloorDto){
         Map<String, Object> map = new HashMap<>();
-        System.out.println(classFloorDto);
         String result;
+
         if(floor.contains(classFloorDto.getFloor())){
             result = adminService.updateClassOfFloorData(classFloorDto);
         }else{
             result = "fail";
         }
+
         if(result.equals("success")){
             System.out.println(classFloorDto.getClasses() + "기 가 " + classFloorDto.getFloor() + "로 변경되었음.");
             map.put("message", "층수 변경이 완료되었습니다!");

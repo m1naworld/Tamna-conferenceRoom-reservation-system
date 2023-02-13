@@ -4,7 +4,6 @@ import com.example.tamna.dto.DetailBookingDataDto;
 import com.example.tamna.model.UserDto;
 import com.example.tamna.service.AuthService;
 import com.example.tamna.service.BookingService;
-import com.example.tamna.service.UserService;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -43,13 +42,13 @@ public class UserController {
     @GetMapping(value = "/mypage")
     public ResponseEntity<Map<String, Object>> myBookingState(HttpServletResponse response){
         UserDto user = authService.checkUser(response);
-        System.out.println(user);
         Map<String, Object> map = new HashMap<>();
+
         if(user != null) {
             map.put("userData", user);
             List<DetailBookingDataDto> myBookingDetailDataList = bookingService.userIncludedBooking(user.getUserId());
-            System.out.println(myBookingDetailDataList);
             map.put("myBookingDetailDataList", myBookingDetailDataList);
+
             return ResponseEntity.status(HttpStatus.OK).body(map);
         }else{
             map.put("message", "tokenFail");

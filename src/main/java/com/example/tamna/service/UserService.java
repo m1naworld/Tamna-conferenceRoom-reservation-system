@@ -18,7 +18,6 @@ public class UserService {
     public String changeString(String userData, Collection<String> teamMateData){
         StringBuilder sb = new StringBuilder();
         if(userData != null) {
-            System.out.println("스트링 변환시 유저 아이디 있음!!");
             sb.append("'" + userData + "'");
             teamMateData.forEach(m -> sb.append(",'" + m + "'"));
             return sb.substring(0, sb.length());
@@ -26,7 +25,6 @@ public class UserService {
             teamMateData.forEach(m -> sb.append("'" + m + "',"));
             System.out.println(sb);
             return sb.substring(0, sb.length() -1);
-
         }
 
 

@@ -30,14 +30,11 @@ public class AuthService {
     public Map<String, String> login(String userId) {
         Map<String, String> map = new HashMap<>();
         UserDto user = userMapper.findByUserId(userId);
+
         if (user != null) {
-            System.out.println(user + "토큰 발급 성공");
-            // accessToken 생성
             String access = jwtProvider.createAccessToken(user.getUserId());
-            System.out.println("로그인 에세스: "+access);
-            //refreshToken 생성
             String refresh = jwtProvider.createRefreshToken(user.getUserId());
-            System.out.println("로그엔 리프레쉬: " + refresh);
+
             map.put("access", access);
             map.put("refresh", refresh);
         } else {
@@ -46,7 +43,6 @@ public class AuthService {
         return map;
     }
 
-    // 유저 확인
     public UserDto checkUser(HttpServletResponse response){
         String accessToken = jwtProvider.getResHeaderAccessToken(AUTHORIZATION_HEADER, response);
         if(accessToken!= null) {
@@ -55,14 +51,12 @@ public class AuthService {
         return null;
     }
 
-    // 로그아웃 refreshToken 삭제
     public String logOutCheckUser(HttpServletRequest request){
         String accessToken = jwtProvider.getHeaderToken(AUTHORIZATION_HEADER, request);
         String refreshToken = jwtProvider.getHeaderToken(REAUTHORIZATION_HEADER, request);
         if(accessToken != null && refreshToken != null) {
             return jwtProvider.deleteToken(refreshToken);
         }else{
-            System.out.println("헤더에 토큰이 없는 경우");
             return null;
         }
     }

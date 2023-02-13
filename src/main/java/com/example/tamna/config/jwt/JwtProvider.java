@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.security.Key;
 import java.util.*;
 
-// 토큰 생성, 유효성 검증
+
 @Service
 @RequiredArgsConstructor
 public class JwtProvider implements InitializingBean {
@@ -53,7 +53,7 @@ public class JwtProvider implements InitializingBean {
         return new java.sql.Date(miliseconds);
     }
 
-    //accessToken 생성
+
     public String createAccessToken(String userId) {
         Claims claims = Jwts.claims().setSubject(userId);
 
@@ -61,57 +61,46 @@ public class JwtProvider implements InitializingBean {
         Date accessValidity = new Date(now.getTime() + accessTokenValidityInMilliSeconds * 1000);
 
         String accessToken = Jwts.builder()
-                .setClaims(claims) // user 정보
+                .setClaims(claims)
                 .setIssuedAt(now)
                 .signWith(key, SignatureAlgorithm.HS256)
-                .setExpiration(accessValidity) // 만료시간 설정
+                .setExpiration(accessValidity)
                 .compact();
 
         return accessToken;
     }
 
-    // refreshToken 생성
+
     public String createRefreshToken(String userId){
 
         Date now = new Date();
-        System.out.println("now: " + now);
-
         Date refreshValidity = new Date(now.getTime() + refreshTokenValidityInMilliSeconds * 1000);
 
         String refreshToken = Jwts.builder()
-                .setSubject("") // 유저 데이터 x
+                .setSubject("")
                 .setIssuedAt(now)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .setExpiration(refreshValidity)
                 .compact();
 
-        System.out.println("refreshToken " + refreshToken);
-
         java.sql.Date today = time();
         Token result = tokenMapper.findToken(refreshToken);
-        System.out.println("result: " + result);
 
         if(result == null) {
             int success = tokenMapper.insertToken(today, userId, refreshToken);
-            System.out.println("success: " + success);
             return refreshToken;
 
-        }else{
-            System.out.println("db에 같은 refreshToken 있는경우");
+        }else{ // db에 있는 refreshToken이 있는 경우 새로운 refreshToken 발급
             return createRefreshToken(userId);
         }
 
 
     }
 
-
-    // refresh DB 에서 검색
     public Token checkRefresh(String refreshToken){
         return tokenMapper.findToken(refreshToken);
     }
 
-
-    // access토큰에서 아이디 추출
     public String getUserIdFromJwt(String accessToken){
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(key)
@@ -119,31 +108,26 @@ public class JwtProvider implements InitializingBean {
                 .parseClaimsJws(accessToken)
                 .getBody();
 
-        System.out.println("claims= " + claims);
-
         return claims.getSubject();
     }
 
-    // 토큰을 통해 유저 정보 얻기
     public UserDto checkUser(String accessToken){
         String userId = getUserIdFromJwt(accessToken);
         return userMapper.findByUserId(userId);
     }
 
-    // 헤더에서 accessToken 가져오기
     public String getHeaderToken(String headerKey, HttpServletRequest request){
         String bearerAccessToken = request.getHeader(headerKey);
-//        System.out.println("헤더 토큰: " + bearerAccessToken);
+
         if (StringUtils.hasText(bearerAccessToken) && bearerAccessToken.startsWith("Bearer ")){
             bearerAccessToken = bearerAccessToken.substring(7);
         }
         return bearerAccessToken;
     }
-
 
     public String getResHeaderAccessToken(String headerKey, HttpServletResponse response){
         String bearerAccessToken = response.getHeader(headerKey);
-        System.out.println("헤더 토큰: " + bearerAccessToken);
+
         if (StringUtils.hasText(bearerAccessToken) && bearerAccessToken.startsWith("Bearer ")){
             bearerAccessToken = bearerAccessToken.substring(7);
         }
@@ -151,18 +135,14 @@ public class JwtProvider implements InitializingBean {
     }
 
 
-    // Jwt 유효성 검사
     public Map<Boolean, String> validateToken(String token){
         Map<Boolean, String> result = new HashMap<>();
         try{
             Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             result.put(!claims.getBody().getExpiration().before(new Date()), "success");
-            System.out.println("토큰 검증 결과: " + result);
             return result;
         }catch (ExpiredJwtException e){
-            System.out.println("만료된 JWT");
             result.put(true, "fail");
-            System.out.println("토큰 검증 결과: " + result);
             return result;
         }catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
             System.out.println("잘못된 JWT 서명");
@@ -174,12 +154,10 @@ public class JwtProvider implements InitializingBean {
             System.out.println("JWT 토큰 없음");
         }
         result.put(false, "유호하지 않음");
-        System.out.println("토큰 검증 결과: " + result);
         return result;
     }
 
 
-    // refresh토큰 DB 삭제
     public String deleteToken(String refreshToken) {
         int result = tokenMapper.deleteToken(refreshToken);
         if (result > 0) {

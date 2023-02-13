@@ -29,7 +29,6 @@ public class FeedbackController {
         return new Date(miliseconds);
     }
 
-
     @Data
     static class FeedBack{
         private String content;
@@ -67,12 +66,12 @@ public class FeedbackController {
     public ResponseEntity<Map<String, Object>> getMyFeedback(HttpServletResponse response){
         UserDto user = authService.checkUser(response);
         Map<String, Object> map = new HashMap<>();
+
         if(user != null){
             List<String> feedbackData  = user.getRoles().equals("DEV") ? feedbackMapper.findAllFeedback() :  feedbackMapper.findFeedbackById(user.getUserId());
-            System.out.println(user.getRoles());
-            System.out.println(feedbackData);
             map.put("feedbackData", feedbackData);
             map.put("userRole", user.getRoles());
+
             return ResponseEntity.status(HttpStatus.OK).body(map);
         }
         map.put("message", "tokenFail");
