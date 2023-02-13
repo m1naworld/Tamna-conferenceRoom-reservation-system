@@ -1,6 +1,5 @@
 package com.example.tamna.mapper;
 
-
 import com.example.tamna.model.Token;
 import org.apache.ibatis.annotations.*;
 

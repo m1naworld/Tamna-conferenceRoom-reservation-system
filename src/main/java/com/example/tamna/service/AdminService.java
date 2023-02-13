@@ -22,6 +22,7 @@ public class AdminService {
     // 어드민 로그인
     public String  getAdminToken(String userId){
         UserDto user = userMapper.findByUserId(userId);
+
         try{
             assert user != null;
             if(user.getRoles().equals("ADMIN")){
@@ -33,11 +34,12 @@ public class AdminService {
         }
     }
 
-    // 최신 인재들 업데이트
-    public String updateUser(File dest) throws IOException {
+
+    public String updateUsers(File dest) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(dest), "euc-kr"));
         String line;
         int result = 0;
+
         if((line= br.readLine())!=null) {
             while ((line = br.readLine()) != null) {
                 String[] datalines = line.split(",");
@@ -45,14 +47,13 @@ public class AdminService {
                     int classes = Integer.parseInt(datalines[0]);
                     String userId = datalines[1];
                     String name = datalines[2];
-                    System.out.println(classes + " " + userId + " " + name);
                     result = adminMapper.insertUser(classes, userId, name);
                 } catch (NumberFormatException e) {
                     continue;
                 }
             }
             br.close();
-            System.out.println(result);
+
             if(result >= 1){
                 return "success";
             }
