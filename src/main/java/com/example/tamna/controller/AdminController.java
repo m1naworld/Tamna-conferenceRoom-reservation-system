@@ -7,9 +7,12 @@ import com.example.tamna.model.Room;
 import com.example.tamna.model.UserDto;
 import com.example.tamna.service.AdminService;
 import com.example.tamna.service.UserService;
+
 import io.swagger.annotations.ApiOperation;
+
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -127,7 +130,6 @@ public class AdminController {
         }
 
         if(result.equals("success")){
-            System.out.println(classFloorDto.getClasses() + "기 가 " + classFloorDto.getFloor() + "로 변경되었음.");
             map.put("message", "층수 변경이 완료되었습니다!");
         }else{
             map.put("message", "층수 변경 실패");
@@ -152,7 +154,6 @@ public class AdminController {
     @PostMapping("/update/room-data")
     public ResponseEntity<Map<String, Object>> updateRoomTIme(@RequestBody RoomDto roomDto){
         Map<String, Object> map = new HashMap<>();
-        System.out.println(roomDto);
         int result = adminMapper.updateRoomData(roomDto.getMaxTime(), roomDto.getRoomType(),roomDto.getRoomId());
         if (result != 0) {
             map.put("message", "회의실 데이터가 수정되었습니다.");
@@ -185,7 +186,6 @@ public class AdminController {
     @PostMapping("/update/user")
     public ResponseEntity<Map<String, Object>> updateUserData(@RequestBody UserDto userDto){
         Map<String, Object> map = new HashMap<>();
-        System.out.println(userDto);
         int result = adminMapper.updateUserData(userDto.getUserName(), userDto.getRoles(), userDto.getFloor(), userDto.getUserId());
         if(result == 1){
             map.put("message", userDto.getUserName() + "님의 데이터가 수정되었습니다.");
@@ -200,7 +200,6 @@ public class AdminController {
     @PostMapping("insertion/user")
     public ResponseEntity<Map<String, Object>> insertUserData(@RequestBody UserDto userDto) {
         Map<String, Object> map = new HashMap<>();
-        System.out.println(userDto);
         try {
             if(!userDto.getUserId().equals(" ") || !userDto.getUserName().equals(" ") ) {
                 int result = adminMapper.insertUserData(userDto.getClasses(), userDto.getUserId(), userDto.getUserName(), userDto.getRoles(), userDto.getFloor());
@@ -211,10 +210,8 @@ public class AdminController {
                 }
             }
         }catch(NullPointerException e) {
-            System.out.println(e);
             map.put("message", "빈 값을 입력해주세요!");
         }catch(Exception e){
-            System.out.println(e);
             map.put("message", "이미 있는 인재번호입니다.");
         }
         return ResponseEntity.status(HttpStatus.OK).body(map);
@@ -232,9 +229,7 @@ public class AdminController {
         Map<String, Object> map = new HashMap<>();
 
         try {
-            System.out.println(userIdList);
             List<String> usersId = userIdList.userIdList;
-            System.out.println(usersId);
             String usersIdString = userService.changeString(null, usersId);
             int result = adminMapper.deleteUser(usersIdString);
             if (result >= 1) {

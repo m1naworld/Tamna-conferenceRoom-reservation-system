@@ -52,9 +52,7 @@ public class BookingService {
     public boolean findSameBooking(int roomId, String startTime, String endTime) {
         Date today = time();
         List<Integer> sameBooking = bookingMapper.findSameBooking(today, roomId, startTime, endTime);
-        System.out.println(sameBooking);
         if (!sameBooking.isEmpty()) {
-            System.out.println("현재 예약된 회의실!");
             return true;
         }
         return false;

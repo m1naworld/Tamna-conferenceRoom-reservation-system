@@ -128,7 +128,6 @@ public class BookingController {
         if(user.getClasses() != 0) {
             String roomTypeUpper = postBookingDataDto.getRoomType().toUpperCase();
             RoomType roomType = RoomType.valueOf(roomTypeUpper);
-            System.out.println(roomType);
 
 
             // 회의실, 스튜디오 예약 횟수 초과했는지 나박스 예약 최대시간 초과했는지 확인
