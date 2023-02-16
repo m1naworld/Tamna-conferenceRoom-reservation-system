@@ -30,6 +30,7 @@ public class UserController {
     public ResponseEntity<Map<String, Object>> resUserData(HttpServletResponse response){
         UserDto user = authService.checkUser(response);
         Map<String, Object> map = new HashMap<>();
+        System.out.println("여기로 오나?");
         if(user != null) {
             map.put("userData", user);
             return ResponseEntity.status(HttpStatus.OK).body(map);

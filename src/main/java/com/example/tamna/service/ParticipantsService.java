@@ -8,8 +8,6 @@ import com.example.tamna.mapper.ParticipantsMapper;
 
 import lombok.RequiredArgsConstructor;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
@@ -18,8 +16,6 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class ParticipantsService {
-
-	private final Logger LOGGER = LoggerFactory.getLogger(ParticipantsService.class);
 
 	private final ParticipantsMapper participantsMapper;
 	private final UserService userService;
@@ -40,7 +36,6 @@ public class ParticipantsService {
 			UserDto user = usersData.get(i);
 			if (!teamMate.contains(user.getUserName())) {
 				participantsMapper.insertParticipants(bookingId, user.getUserId(), true);
-				;
 			} else {
 				participantsMapper.insertParticipants(bookingId, user.getUserId(), false);
 			}
@@ -87,7 +82,6 @@ public class ParticipantsService {
 			usingCheck = participantsMapper.selectUsingOnlyUser(today, postBookingDataDto.getStartTime(),
 				postBookingDataDto.getEndTime(), user.getUserId());
 		}
-		System.out.println("현재 회의실 사용중인 유저들: " + usingCheck);
 
 		Set<String> usingUsers = new HashSet<>();
 		if (!usingCheck.isEmpty()) {
