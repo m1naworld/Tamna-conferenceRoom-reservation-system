@@ -30,7 +30,6 @@ public class UserController {
     public ResponseEntity<Map<String, Object>> resUserData(HttpServletResponse response){
         UserDto user = authService.checkUser(response);
         Map<String, Object> map = new HashMap<>();
-        System.out.println("여기로 오나?");
         if(user != null) {
             map.put("userData", user);
             return ResponseEntity.status(HttpStatus.OK).body(map);
@@ -47,7 +46,7 @@ public class UserController {
 
         if(user != null) {
             map.put("userData", user);
-            List<DetailBookingDataDto> myBookingDetailDataList = bookingService.userIncludedBooking(user.getUserId());
+            List<DetailBookingDataDto> myBookingDetailDataList = bookingService.todayMyBooking(user.getUserId());
             map.put("myBookingDetailDataList", myBookingDetailDataList);
 
             return ResponseEntity.status(HttpStatus.OK).body(map);

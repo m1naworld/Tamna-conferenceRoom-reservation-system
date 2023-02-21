@@ -128,56 +128,58 @@ public class BookingService {
         }
     }
 
-    // 내가 포함된 에약 데이터 조회
-    public List<DetailBookingDataDto> userIncludedBooking(String userId) {
-        Date today = time();
-        List<DetailBookingDataDto> allMyBookingData = new ArrayList<>();
+	public List<DetailBookingDataDto> todayMyBooking(String userId) {
 
-        // 내가 예약된 예약정보의 bookingId들 받아옴
-        List<Integer> bookingIdList = bookingMapper.findMyBookingId(today, userId);
-        String bookingIdString = addBookingId(bookingIdList);
+		Date today = time();
+		List<Integer> todayBookingIdList = bookingMapper.findMyBookingId(today, userId);
+		String bookingIdForQuery = addBookingId(todayBookingIdList);
 
-        // 예약한 데이터가 있을 때
-        if (bookingIdString != null) {
-            // bookingId들 문자열로 변환 후 한번에 데이터들 모두 조회
-            List<JoinBooking> myBookingList = bookingMapper.findMyBookingData(bookingIdString);
+		List<DetailBookingDataDto> result = new ArrayList<>();
 
-            if (!myBookingList.isEmpty()) {
-                for (int i : bookingIdList) {
-                    DetailBookingDataDto combineData = new DetailBookingDataDto();
-                    List<String> teamMate = new ArrayList<>();
-                    for (int j = 0; j < myBookingList.toArray().length; j++) {
-                        if (myBookingList.get(j).getBookingId() == i) {
-                            if (myBookingList.get(j).isUserType()) {
-                                combineData.setBookingId(myBookingList.get(j).getBookingId());
-                                combineData.setRoomId(myBookingList.get(j).getRoomId());
-                                combineData.setRoomName(myBookingList.get(j).getRoomName());
-                                combineData.setRoomType(myBookingList.get(j).getRoomType());
-                                combineData.setStartTime(myBookingList.get(j).getStartTime());
-                                combineData.setEndTime(myBookingList.get(j).getEndTime());
-                                combineData.setOfficial(myBookingList.get(j).isOfficial());
-                                combineData.setMode(myBookingList.get(j).getMode());
-                                Map<String, String> applicant = new HashMap<>();
-                                applicant.put("userId", myBookingList.get(j).getUserId());
-                                applicant.put("userName", myBookingList.get(j).getUserName());
-                                combineData.setApplicant(applicant);
-                            } else {
-                                teamMate.add(myBookingList.get(j).getUserName());
-                            }
-                        } // bookingId가 다를 때 최상위 for문으로 이동
-                        continue;
-                    }
-                    combineData.setParticipants(teamMate);
-                    allMyBookingData.add(combineData);
-                }
-            } else {
-                allMyBookingData.add(null);
-            }
-        }
-        return allMyBookingData;
-    }
+		if (bookingIdForQuery == null) {
+			result.add(null);
+			return result;
+		}
 
-    ;
+		List<JoinBooking> findTodayMyBooking = bookingMapper.findMyBookingData(bookingIdForQuery);
+		int bookingId = todayBookingIdList.get(0);
+		DetailBookingDataDto todayMyBooking = new DetailBookingDataDto();
+		List<String> teamMate = new ArrayList<>();
+
+		int lastIndex = findTodayMyBooking.size();
+		for (int j = 0; j < lastIndex; j++) {
+			JoinBooking b = findTodayMyBooking.get(j);
+
+			if (b.getBookingId() == bookingId) {
+				if (b.isUserType()) {
+					Map<String, String> applicant = new HashMap<>();
+					applicant.put("userId", b.getUserId());
+					applicant.put("userName", b.getUserName());
+
+					todayMyBooking.updateDetailBookingDataDto(b);
+					todayMyBooking.updateApplication(applicant);
+				} else {
+					teamMate.add(b.getUserName());
+				}
+
+				if (j == lastIndex - 1) {
+					todayMyBooking.updateParticipants(teamMate);
+					result.add(todayMyBooking);
+				}
+			} else {
+				todayMyBooking.updateParticipants(teamMate);
+				result.add(todayMyBooking);
+
+				bookingId = b.getBookingId();
+				j -= 1;
+
+				// 객체 초기화
+				todayMyBooking = new DetailBookingDataDto();
+				teamMate = new ArrayList<>();
+			}
+		}
+		return result;
+	}
 
     // bookingId를 통한 공식일정 검색
     public CancelDto selectBookingId(int bookingId, String userId) {
